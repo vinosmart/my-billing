@@ -2,6 +2,65 @@
   <div class="p-6 bg-gray-100 min-h-screen">
     <h1 class="text-2xl font-bold mb-6 text-gray-800">Sales Report</h1>
 
+    <!-- Add Product Form -->
+    <div class="mb-6 bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-semibold mb-4 text-gray-800">Add New Product</h2>
+      <form @submit.prevent="addProduct" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700"
+            >Product Name</label
+          >
+          <input
+            v-model="newProduct.productName"
+            type="text"
+            required
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700"
+            >Quantity Sold</label
+          >
+          <input
+            v-model="newProduct.quantity"
+            type="number"
+            required
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700"
+            >Total Sales (₹)</label
+          >
+          <input
+            v-model="newProduct.totalPrice"
+            type="number"
+            required
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700"
+            >Sale Date</label
+          >
+          <input
+            v-model="newProduct.date"
+            type="date"
+            required
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        <div>
+          <button
+            type="submit"
+            class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+          >
+            Add Product
+          </button>
+        </div>
+      </form>
+    </div>
+
     <!-- Sales Table -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
       <table class="w-full table-auto">
@@ -59,30 +118,57 @@
 <script setup>
 import { ref } from "vue";
 
-const salesData = ref([
-  {
-    productName: "Cotton Fabric",
-    quantity: 10,
-    totalPrice: 500,
-    date: "2025-03-19",
-  },
-  {
-    productName: "Silk Fabric",
-    quantity: 5,
-    totalPrice: 800,
-    date: "2025-03-18",
-  },
-  {
-    productName: "Silk Fabric",
-    quantity: 5,
-    totalPrice: 800,
-    date: "2025-03-18",
-  },
-  {
-    productName: "Silk Fabric",
-    quantity: 5,
-    totalPrice: 800,
-    date: "2025-03-18",
-  },
-]);
+const salesData = ref([]);
+const newProduct = ref({
+  productName: "",
+  quantity: 0,
+  totalPrice: 0,
+  date: "",
+});
+
+// Fetch sales data on component mount
+onMounted(async () => {
+  await fetchSalesData();
+});
+
+// Fetch sales data from the backend
+async function fetchSalesData() {
+  try {
+    const response = await fetch("http://localhost:3000/api/sales");
+    const data = await response.json();
+    salesData.value = data;
+  } catch (error) {
+    console.error("Failed to fetch sales data:", error);
+  }
+}
+
+// Add a new product
+async function addProduct() {
+  try {
+    const response = await fetch("http://localhost:3000/api/sales", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newProduct.value),
+    });
+
+    if (response.ok) {
+      // Clear the form
+      newProduct.value = {
+        productName: "",
+        quantity: 0,
+        totalPrice: 0,
+        date: "",
+      };
+
+      // Refresh the sales data
+      await fetchSalesData();
+    } else {
+      console.error("Failed to add product:", response.statusText);
+    }
+  } catch (error) {
+    console.error("Error adding product:", error);
+  }
+}
 </script>
