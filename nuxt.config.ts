@@ -8,6 +8,7 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
   },
+  ssr: true,
   // pwa: {
   //   manifest: {
   //     name: 'Textile Billing Software',
