@@ -429,7 +429,7 @@ const form = ref({
 });
 
 // API Configuration
-const API_BASE = "https://billing-software-ten.vercel.app//api";
+const API_BASE = "https://billing-software-ten.vercel.app/api";
 
 // API Service
 const apiService = {
