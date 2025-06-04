@@ -220,7 +220,41 @@
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-              <canvas :id="`barcode-${product.id}`" class="h-12"></canvas>
+              <div
+                class="relative group inline-block"
+                @mouseenter="hoveredBarcodeId = product.id"
+                @mouseleave="hoveredBarcodeId = null"
+              >
+                <canvas
+                  :id="`barcode-${product.id}`"
+                  class="h-12 cursor-pointer"
+                ></canvas>
+                <!-- Download Button Overlay -->
+                <div
+                  v-show="hoveredBarcodeId === product.id"
+                  class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded transition-opacity duration-200"
+                >
+                  <button
+                    @click="downloadBarcode(product)"
+                    class="bg-white text-gray-800 px-3 py-1 rounded-md shadow-lg hover:bg-gray-100 transition-colors duration-200 flex items-center space-x-1 text-sm"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    <span>Download</span>
+                  </button>
+                </div>
+              </div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
               <div class="flex space-x-2">
@@ -372,7 +406,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick, watch } from "vue";
+import { ref, computed, onMounted, nextTick, watch, onUnmounted } from "vue";
 
 // Reactive state
 const products = ref([]);
@@ -384,6 +418,7 @@ const error = ref("");
 const successMessage = ref("");
 const searchQuery = ref("");
 const categoryFilter = ref("");
+const hoveredBarcodeId = ref(null);
 
 const form = ref({
   name: "",
@@ -498,6 +533,32 @@ const generateBarcodeImage = async (product) => {
     }
   } catch (err) {
     console.warn("Barcode generation failed:", err);
+  }
+};
+
+// Barcode download function
+const downloadBarcode = (product) => {
+  try {
+    const canvas = document.getElementById(`barcode-${product.id}`);
+    if (!canvas) {
+      showError("Barcode not found");
+      return;
+    }
+
+    // Create a download link
+    const link = document.createElement("a");
+    link.download = `barcode-${product.name}-${product.barcode}.png`;
+    link.href = canvas.toDataURL("image/png");
+
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    showSuccess(`Barcode for ${product.name} downloaded successfully!`);
+  } catch (err) {
+    showError("Failed to download barcode");
+    console.error("Download error:", err);
   }
 };
 

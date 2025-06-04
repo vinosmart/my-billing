@@ -48,8 +48,8 @@
           active-class="bg-indigo-50 text-indigo-600 shadow-sm"
         >
           <!-- Icon -->
-          <component
-            :is="item.icon"
+          <span
+            v-html="item.icon"
             :class="[
               'w-6 h-6 transition-colors duration-200',
               isOpen ? 'mr-3' : 'mx-auto',
@@ -136,41 +136,6 @@ import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 
 // Icons as Vue components
-const AnalyticsIcon = {
-  template: `
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-6 h-6">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-    </svg>
-  `,
-};
-
-const ProductsIcon = {
-  template: `
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-6 h-6">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-    </svg>
-  `,
-};
-
-const StocksIcon = {
-  template: `
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-6 h-6">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-            d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-    </svg>
-  `,
-};
-
-const BillingIcon = {
-  template: `
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-6 h-6">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-    </svg>
-  `,
-};
 
 // Reactive state
 const isOpen = ref(true);
@@ -179,11 +144,50 @@ const route = useRoute();
 
 // Menu items with proper icon components
 const menuItems = [
-  { name: "Analytics", path: "/analytics", icon: AnalyticsIcon },
-  { name: "Products", path: "/products", icon: ProductsIcon },
-  { name: "Purchase", path: "/purchase", icon: StocksIcon },
-  { name: "Billing", path: "/billing", icon: BillingIcon },
-  { name: "customers", path: "/customers", icon: BillingIcon },
+  {
+    name: "Analytics",
+    path: "/analytics",
+    icon: `   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-6 h-6">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>`,
+  },
+  {
+    name: "Products",
+    path: "/products",
+    icon: `  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-6 h-6">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+    </svg>`,
+  },
+  {
+    name: "Purchase",
+    path: "/purchase",
+    icon: ` <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-6 h-6">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+            d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+    </svg>`,
+  },
+  {
+    name: "Billing",
+    path: "/billing",
+    icon: `
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-6 h-6">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    </svg>
+  `,
+  },
+  {
+    name: "customers",
+    path: "/customers",
+    icon: `
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-6 h-6">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+            d="M16 11a4 4 0 11-8 0 4 4 0 018 0zm-1.5 7.5a6.5 6.5 0 00-13 0v1.5a1.5 1.5 0 001.5 1.5h10a1.5 1.5 0 001.5-1.5V18z" />
+    </svg>
+  `,
+  },
 ];
 
 // Computed properties
