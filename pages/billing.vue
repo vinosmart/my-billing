@@ -557,7 +557,7 @@ const scannedProduct = ref(null);
 let html5QrCode = null;
 
 // API Configuration
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "https://billing-software-ten.vercel.app//api";
 
 // Computed properties
 const currentBillId = computed(() => Date.now().toString().slice(-6));

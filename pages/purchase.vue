@@ -652,7 +652,7 @@ const newItem = ref({
 });
 
 // API Configuration
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "https://billing-software-ten.vercel.app//api";
 
 // API Service
 const apiService = {

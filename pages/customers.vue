@@ -522,7 +522,7 @@ const currentPage = ref(1);
 const itemsPerPage = ref(10);
 
 // API Configuration
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "https://billing-software-ten.vercel.app//api";
 
 // API Service
 const apiService = {
