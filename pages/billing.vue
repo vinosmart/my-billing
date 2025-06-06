@@ -602,7 +602,7 @@ const scannedProduct = ref(null);
 const gstEnabled = ref(false); // GST toggle state
 
 // API Configuration
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "https://billing-software-ten.vercel.app/api";
 
 // Computed properties
 const currentBillId = computed(() => Date.now().toString().slice(-6));
