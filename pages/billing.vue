@@ -1,6 +1,18 @@
-<!-- pages/index.vue -->
+<!-- Complete pages/index.vue with T-6900 scanner support and auto invoice download -->
 <template>
   <div class="p-8 max-w-7xl mx-auto">
+    <!-- Hidden input for physical barcode scanner -->
+    <input
+      ref="barcodeInput"
+      v-model="scannedBarcode"
+      @input="handleBarcodeInput"
+      @keyup.enter="processBarcodeInput"
+      type="text"
+      class="sr-only"
+      placeholder="Barcode scanner input"
+      autocomplete="off"
+    />
+
     <!-- Header -->
     <div
       class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8"
@@ -43,6 +55,23 @@
       <div class="flex">
         <span>{{ successMessage }}</span>
         <button @click="successMessage = ''" class="ml-auto">×</button>
+      </div>
+    </div>
+
+    <!-- Barcode Scanner Status -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+          <span class="text-blue-800 font-medium">Scanner Always Ready</span>
+          <span class="text-sm text-blue-600">T-6900 Active</span>
+        </div>
+        <div class="text-sm text-blue-600">
+          Last scan: {{ lastScanTime ? formatDateTime(lastScanTime) : "None" }}
+        </div>
+      </div>
+      <div class="mt-2 text-xs text-blue-600">
+        Ready to scan continuously - adds 1 unit per scan
       </div>
     </div>
 
@@ -151,12 +180,12 @@
             Product Search
           </h3>
 
-          <!-- Barcode Scanner Section -->
+          <!-- Physical Barcode Scanner Section -->
           <div class="mb-6">
             <div class="flex items-center justify-between mb-4">
               <h4 class="text-md font-semibold text-gray-800 flex items-center">
                 <svg
-                  class="w-5 h-5 mr-2 text-indigo-600"
+                  class="w-5 h-5 mr-2 text-green-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -168,93 +197,50 @@
                     d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M12 12h-4.01M12 12v4M6 12H4m6 11h2m-6 0h-2v-4m0 11v-3m0 0h-.01M12 12h-4.01M12 12h4.01M12 12v-4m6-4h2m-6 0h-2v-4m0 4v3m0 0h.01"
                   />
                 </svg>
-                Barcode Scanner
+                Physical Scanner (T-6900)
               </h4>
               <div class="flex items-center space-x-2">
                 <div
-                  :class="[
-                    'w-2 h-2 rounded-full',
-                    scanning ? 'bg-green-500' : 'bg-gray-400',
-                  ]"
+                  class="w-2 h-2 rounded-full bg-green-500 animate-pulse"
                 ></div>
-                <span class="text-xs text-gray-600">{{
-                  scanning ? "Active" : "Inactive"
-                }}</span>
+                <span class="text-xs text-gray-600">Always Ready</span>
               </div>
             </div>
 
-            <ClientOnly>
-              <button
-                @click="toggleScanner"
-                :class="[
-                  'w-full px-4 py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2',
-                  scanning
-                    ? 'bg-red-600 hover:bg-red-700 text-white'
-                    : 'bg-indigo-600 hover:bg-indigo-700 text-white',
-                ]"
-              >
-                <svg
-                  v-if="scanning"
-                  class="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 10h6v4H9z"
-                  />
-                </svg>
-                <svg
-                  v-else
-                  class="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                  />
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-                <span>{{ scanning ? "Stop Scanner" : "Start Scanner" }}</span>
-              </button>
+            <div class="bg-gray-50 rounded-lg p-4">
+              <p class="text-sm text-gray-600 mb-2">
+                <strong>Scanner Instructions:</strong>
+              </p>
+              <ul class="text-xs text-gray-500 space-y-1">
+                <li>• Scanner is always ready - no delays</li>
+                <li>
+                  • Each scan adds exactly <strong>1 unit</strong> to cart
+                </li>
+                <li>• Scan multiple times to add more units</li>
+                <li>• Very rapid duplicate scans (within 300ms) are ignored</li>
+              </ul>
+            </div>
 
-              <div
-                id="reader"
-                class="mt-4 rounded-lg overflow-hidden"
-                :class="{ hidden: !scanning }"
-              ></div>
-            </ClientOnly>
+            <!-- Focus button for scanner -->
+            <button
+              @click="focusBarcodeInput"
+              class="w-full mt-3 bg-green-100 hover:bg-green-200 text-green-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            >
+              🎯 Activate Scanner Focus (Always Ready)
+            </button>
           </div>
 
           <!-- Manual Entry -->
           <div class="mb-6">
             <label class="block text-sm font-medium text-gray-700 mb-2"
-              >Add Product</label
+              >Manual Entry</label
             >
             <div class="flex space-x-2">
               <input
                 v-model="manualBarcode"
                 @keyup.enter="addProductByBarcode"
                 type="text"
-                placeholder="Enter product name or barcode"
+                placeholder="Enter product name or barcode manually"
                 class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 :disabled="loading"
               />
@@ -320,10 +306,24 @@
               <span class="text-gray-600">Total Quantity:</span>
               <span class="font-medium">{{ totalQuantity }}</span>
             </div>
-            <div class="flex justify-between text-lg font-bold">
-              <span>Total:</span>
-              <span class="text-green-600"
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Subtotal:</span>
+              <span class="font-medium"
                 >₹{{ totalAmount.toLocaleString() }}</span
+              >
+            </div>
+            <div v-if="gstEnabled" class="border-t pt-2">
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">GST (18%):</span>
+                <span class="font-medium"
+                  >₹{{ gstAmount.toLocaleString() }}</span
+                >
+              </div>
+            </div>
+            <div class="flex justify-between text-lg font-bold border-t pt-2">
+              <span>Grand Total:</span>
+              <span class="text-green-600"
+                >₹{{ grandTotal.toLocaleString() }}</span
               >
             </div>
           </div>
@@ -356,6 +356,33 @@
                 placeholder="Phone Number (Optional)"
                 class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
+
+              <!-- GST Toggle -->
+              <div
+                class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              >
+                <div>
+                  <label class="text-sm font-medium text-gray-700"
+                    >GST Invoice</label
+                  >
+                  <p class="text-xs text-gray-500">Enable to add 18% GST</p>
+                </div>
+                <button
+                  @click="gstEnabled = !gstEnabled"
+                  :class="[
+                    'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                    gstEnabled ? 'bg-green-600' : 'bg-gray-300',
+                  ]"
+                >
+                  <span class="sr-only">Enable GST</span>
+                  <span
+                    :class="[
+                      'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                      gstEnabled ? 'translate-x-6' : 'translate-x-1',
+                    ]"
+                  />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -441,7 +468,7 @@
               :disabled="billItems.length === 0 || saving"
               class="w-full bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
             >
-              {{ saving ? "Generating..." : "Generate  Bill" }}
+              {{ saving ? "Generating..." : "Generate Bill & Invoice" }}
             </button>
 
             <div class="grid grid-cols-2 gap-3">
@@ -484,8 +511,7 @@
             <div
               v-for="bill in recentBills"
               :key="bill.id"
-              @click="viewBillDetails(bill)"
-              class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+              class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
             >
               <div class="flex items-center justify-between">
                 <div>
@@ -496,6 +522,12 @@
                   <p class="text-xs text-gray-400">
                     {{ formatDateTime(bill.date) }}
                   </p>
+                  <span
+                    v-if="bill.gstEnabled"
+                    class="inline-block mt-1 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded"
+                  >
+                    GST Invoice
+                  </span>
                 </div>
                 <div class="text-right">
                   <p class="font-semibold text-gray-800">
@@ -504,6 +536,12 @@
                   <p class="text-xs text-gray-500">
                     {{ bill.items.length }} items
                   </p>
+                  <button
+                    @click="downloadInvoice(bill)"
+                    class="mt-2 text-xs text-blue-600 hover:text-blue-800"
+                  >
+                    📥 Download Invoice
+                  </button>
                 </div>
               </div>
             </div>
@@ -515,30 +553,39 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
 
 // Meta
 useHead({
-  title: " Billing System",
+  title: "Billing System",
   meta: [
     {
       name: "description",
-      content: "Professional billing system for ",
-    },
-  ],
-  script: [
-    {
-      src: "https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js",
-      defer: true,
-    },
-    {
-      src: "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
-      defer: true,
+      content: "Professional billing system",
     },
   ],
 });
 
-// Reactive data
+// Company configuration (You can modify these)
+const companyConfig = {
+  name: "Your Company Name",
+  address: "123, Main Street, City - 600001",
+  phone: "+91 12345 67890",
+  email: "info@yourcompany.com",
+  gstin: "29ABCDE1234F1Z5", // Your GST number if applicable
+  logo: "", // Base64 logo if you want to add one
+};
+
+// Reactive data for barcode scanner
+const scannedBarcode = ref("");
+const lastScanTime = ref("");
+const barcodeInput = ref(null);
+const barcodeBuffer = ref("");
+const lastInputTime = ref(0);
+const lastScannedBarcode = ref("");
+const lastBarcodeTime = ref(0);
+
+// Existing reactive data
 const products = ref([]);
 const billItems = ref([]);
 const customerName = ref("");
@@ -551,19 +598,21 @@ const loading = ref(false);
 const saving = ref(false);
 const error = ref("");
 const successMessage = ref("");
-const scanning = ref(false);
 const scannedProduct = ref(null);
-
-let html5QrCode = null;
+const gstEnabled = ref(false); // GST toggle state
 
 // API Configuration
-const API_BASE = "https://billing-software-ten.vercel.app/api";
+const API_BASE = "http://localhost:5000/api";
 
 // Computed properties
 const currentBillId = computed(() => Date.now().toString().slice(-6));
 const totalAmount = computed(() =>
   billItems.value.reduce((sum, item) => sum + item.price * item.quantity, 0)
 );
+const gstAmount = computed(() =>
+  gstEnabled.value ? totalAmount.value * 0.18 : 0
+);
+const grandTotal = computed(() => totalAmount.value + gstAmount.value);
 const totalQuantity = computed(() =>
   billItems.value.reduce((sum, item) => sum + item.quantity, 0)
 );
@@ -580,84 +629,345 @@ const todaysBillsCount = computed(() => {
   ).length;
 });
 
-// Scanner functions
-const toggleScanner = () => {
-  if (!scanning.value) {
-    startScanner();
-  } else {
-    stopScanner();
+// Load jsPDF dynamically
+const loadJsPDF = () => {
+  return new Promise((resolve, reject) => {
+    if (window.jspdf) {
+      resolve(window.jspdf);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src =
+      "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+    script.onload = () => {
+      resolve(window.jspdf);
+    };
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+};
+
+// Generate invoice PDF
+const generateInvoicePDF = async (billData) => {
+  try {
+    const { jsPDF } = await loadJsPDF();
+    const doc = new jsPDF();
+
+    // Colors
+    const primaryColor = [41, 128, 185];
+    const textColor = [44, 62, 80];
+    const lightGray = [189, 195, 199];
+
+    let y = 20;
+
+    // Company Header
+    doc.setFontSize(24);
+    doc.setTextColor(...primaryColor);
+    doc.setFont(undefined, "bold");
+    doc.text(companyConfig.name, 105, y, { align: "center" });
+
+    y += 10;
+    doc.setFontSize(10);
+    doc.setTextColor(...textColor);
+    doc.setFont(undefined, "normal");
+    doc.text(companyConfig.address, 105, y, { align: "center" });
+
+    y += 5;
+    doc.text(
+      `Phone: ${companyConfig.phone} | Email: ${companyConfig.email}`,
+      105,
+      y,
+      { align: "center" }
+    );
+
+    if (companyConfig.gstin) {
+      y += 5;
+      doc.text(`GSTIN: ${companyConfig.gstin}`, 105, y, { align: "center" });
+    }
+
+    // Invoice Title
+    y += 15;
+    doc.setFontSize(18);
+    doc.setFont(undefined, "bold");
+    doc.text("INVOICE", 105, y, { align: "center" });
+
+    // Line separator
+    y += 5;
+    doc.setDrawColor(...lightGray);
+    doc.setLineWidth(0.5);
+    doc.line(20, y, 190, y);
+
+    // Invoice Details
+    y += 10;
+    doc.setFontSize(10);
+    doc.setFont(undefined, "normal");
+
+    // Left side - Bill details
+    doc.text(`Invoice No: ${billData.id}`, 20, y);
+    doc.text(
+      `Date: ${new Date(billData.date).toLocaleDateString("en-IN")}`,
+      20,
+      y + 5
+    );
+    doc.text(
+      `Time: ${new Date(billData.date).toLocaleTimeString("en-IN")}`,
+      20,
+      y + 10
+    );
+
+    // Right side - Customer details
+    doc.setFont(undefined, "bold");
+    doc.text("Bill To:", 120, y);
+    doc.setFont(undefined, "normal");
+    doc.text(billData.customerName || "Walk-in Customer", 120, y + 5);
+    if (billData.customerPhone) {
+      doc.text(`Phone: ${billData.customerPhone}`, 120, y + 10);
+    }
+
+    // Items table header
+    y += 25;
+    doc.setFillColor(...primaryColor);
+    doc.setTextColor(255, 255, 255);
+    doc.rect(20, y, 170, 8, "F");
+
+    doc.setFontSize(10);
+    doc.setFont(undefined, "bold");
+    doc.text("S.No", 25, y + 5.5);
+    doc.text("Item Description", 45, y + 5.5);
+    doc.text("Category", 110, y + 5.5);
+    doc.text("Qty", 140, y + 5.5);
+    doc.text("Rate", 155, y + 5.5);
+    doc.text("Amount", 175, y + 5.5);
+
+    // Items
+    y += 8;
+    doc.setTextColor(...textColor);
+    doc.setFont(undefined, "normal");
+
+    let subtotal = 0;
+    billData.items.forEach((item, index) => {
+      y += 8;
+
+      // Alternate row background
+      if (index % 2 === 0) {
+        doc.setFillColor(248, 249, 250);
+        doc.rect(20, y - 5, 170, 8, "F");
+      }
+
+      doc.text((index + 1).toString(), 25, y);
+      doc.text(item.name, 45, y);
+      doc.text(item.category, 110, y);
+      doc.text(item.quantity.toString(), 142, y, { align: "center" });
+      doc.text(`₹${item.price}`, 155, y);
+
+      const itemTotal = item.price * item.quantity;
+      subtotal += itemTotal;
+      doc.text(`₹${itemTotal.toLocaleString()}`, 185, y, { align: "right" });
+    });
+
+    // Summary line
+    y += 10;
+    doc.setDrawColor(...lightGray);
+    doc.line(20, y, 190, y);
+
+    // Totals
+    y += 8;
+    doc.setFont(undefined, "bold");
+    doc.text("Subtotal:", 140, y);
+    doc.text(`₹${subtotal.toLocaleString()}`, 185, y, { align: "right" });
+
+    if (gstEnabled.value) {
+      y += 5;
+      doc.text("GST (18%):", 140, y);
+      doc.text(`₹${gstAmount.value.toLocaleString()}`, 185, y, {
+        align: "right",
+      });
+    }
+
+    // Grand Total
+    y += 8;
+    doc.setFillColor(...primaryColor);
+    doc.setTextColor(255, 255, 255);
+    doc.rect(120, y - 5, 70, 10, "F");
+
+    doc.setFontSize(12);
+    doc.setFont(undefined, "bold");
+    doc.text("Grand Total:", 140, y + 2);
+    doc.text(`₹${billData.total.toLocaleString()}`, 185, y + 2, {
+      align: "right",
+    });
+
+    // Terms and conditions
+    y += 20;
+    doc.setTextColor(...textColor);
+    doc.setFontSize(8);
+    doc.setFont(undefined, "normal");
+    doc.text("Terms & Conditions:", 20, y);
+    doc.text(
+      "1. Goods once sold will not be taken back or exchanged",
+      20,
+      y + 5
+    );
+    doc.text("2. Subject to local jurisdiction only", 20, y + 10);
+
+    // Footer
+    y = 270;
+    doc.setDrawColor(...lightGray);
+    doc.line(20, y, 190, y);
+    doc.setFontSize(8);
+    doc.text("Thank you for your business!", 105, y + 5, { align: "center" });
+    doc.text(
+      `Generated on ${new Date().toLocaleString("en-IN")}`,
+      105,
+      y + 10,
+      { align: "center" }
+    );
+
+    return doc;
+  } catch (err) {
+    console.error("Error generating PDF:", err);
+    throw err;
   }
 };
 
-const startScanner = () => {
-  if (typeof Html5Qrcode === "undefined") {
-    showError("Barcode scanner library not loaded. Please refresh the page.");
+// Download invoice for any bill
+const downloadInvoice = async (billData) => {
+  try {
+    const doc = await generateInvoicePDF(billData);
+    const fileName = `invoice_${billData.id}_${
+      new Date().toISOString().split("T")[0]
+    }.pdf`;
+    doc.save(fileName);
+    showSuccess(`Invoice downloaded: ${fileName}`);
+  } catch (err) {
+    showError(`Failed to generate invoice: ${err.message}`);
+  }
+};
+
+// Physical barcode scanner functions
+const focusBarcodeInput = () => {
+  nextTick(() => {
+    if (barcodeInput.value) {
+      barcodeInput.value.focus();
+      showSuccess("Scanner focus activated. Always ready to scan!");
+    }
+  });
+};
+
+const handleBarcodeInput = (event) => {
+  const currentTime = Date.now();
+  const timeDiff = currentTime - lastInputTime.value;
+
+  // If time difference is small, it's likely from a barcode scanner
+  if (timeDiff < 100) {
+    barcodeBuffer.value += event.target.value;
+  } else {
+    barcodeBuffer.value = event.target.value;
+  }
+
+  lastInputTime.value = currentTime;
+
+  // Auto-process if input looks complete (typical barcode length)
+  if (barcodeBuffer.value.length >= 8) {
+    // Process immediately - no cooldown
+    setTimeout(() => {
+      processBarcodeInput();
+    }, 50);
+  }
+};
+
+const processBarcodeInput = async () => {
+  const barcode = scannedBarcode.value.trim() || barcodeBuffer.value.trim();
+
+  if (!barcode) return;
+
+  const currentTime = Date.now();
+
+  // Very short duplicate prevention (300ms) only for exact same barcode
+  if (
+    barcode === lastScannedBarcode.value &&
+    currentTime - lastBarcodeTime.value < 300
+  ) {
+    console.log("Rapid duplicate scan ignored:", barcode);
+    clearScannerInput();
     return;
   }
 
-  html5QrCode = new Html5Qrcode("reader");
-  html5QrCode
-    .start(
-      { facingMode: "environment" },
-      {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0,
-      },
-      onScanSuccess,
-      onScanFailure
-    )
-    .then(() => {
-      scanning.value = true;
-    })
-    .catch((err) => {
-      console.error("Unable to start scanning", err);
-      showError("Unable to start camera. Please check permissions.");
-    });
-};
+  console.log("Processing barcode from scanner:", barcode);
 
-const stopScanner = () => {
-  if (html5QrCode) {
-    html5QrCode
-      .stop()
-      .then(() => {
-        html5QrCode.clear();
-        scanning.value = false;
-      })
-      .catch(console.error);
+  try {
+    // Find product by barcode
+    const product = products.value.find(
+      (p) => p.barcode === barcode || p.barcode === barcode.toString()
+    );
+
+    if (product) {
+      addSingleProductToCart(product);
+      lastScanTime.value = new Date().toISOString();
+      lastScannedBarcode.value = barcode;
+      lastBarcodeTime.value = currentTime;
+      showSuccess(`Added 1x ${product.name} via scanner!`);
+    } else {
+      // Try API call for barcode
+      try {
+        const apiProduct = await apiService.getProductByBarcode(barcode);
+        addSingleProductToCart(apiProduct);
+        lastScanTime.value = new Date().toISOString();
+        lastScannedBarcode.value = barcode;
+        lastBarcodeTime.value = currentTime;
+        showSuccess(`Added 1x ${apiProduct.name} via scanner!`);
+      } catch (err) {
+        showError(`Product not found for barcode: ${barcode}`);
+      }
+    }
+  } catch (err) {
+    showError(`Scanner error: ${err.message}`);
+  } finally {
+    clearScannerInput();
   }
 };
 
-const onScanSuccess = async (decodedText) => {
-  console.log("Barcode scanned:", decodedText);
+// New function specifically for scanner input - adds exactly 1 unit
+const addSingleProductToCart = (product) => {
+  if (product.quantity <= 0) {
+    showError(`${product.name} is out of stock!`);
+    return;
+  }
 
-  // Find product by barcode
-  const product = products.value.find(
-    (p) => p.barcode === decodedText || p.barcode === decodedText.toString()
-  );
-
-  if (product) {
-    scannedProduct.value = { ...product };
-    // Auto-stop scanner when product is found
-    if (scanning.value) {
-      stopScanner();
+  const existingItem = billItems.value.find((item) => item.id === product.id);
+  if (existingItem) {
+    if (existingItem.quantity < product.quantity) {
+      existingItem.quantity += 1; // Add exactly 1 unit
+      showSuccess(
+        `Quantity increased: ${product.name} (${existingItem.quantity})`
+      );
+    } else {
+      showError(`Only ${product.quantity} units available for ${product.name}`);
     }
   } else {
-    // Try API call for barcode
-    try {
-      const apiProduct = await apiService.getProductByBarcode(decodedText);
-      scannedProduct.value = { ...apiProduct };
-      if (scanning.value) {
-        stopScanner();
-      }
-    } catch (err) {
-      showError(`Product not found for barcode: ${decodedText}`);
-    }
+    // Add new item with exactly 1 unit
+    billItems.value.push({
+      id: product.id,
+      name: product.name,
+      category: product.category,
+      price: product.price,
+      barcode: product.barcode,
+      quantity: 1, // Always start with 1 unit
+    });
+    showSuccess(`Added to cart: ${product.name} (1 unit)`);
   }
 };
 
-const onScanFailure = () => {
-  // Ignore scan failures - they're common
+// Helper function to clear scanner input
+const clearScannerInput = () => {
+  scannedBarcode.value = "";
+  barcodeBuffer.value = "";
+
+  // Immediately refocus for next scan
+  nextTick(() => {
+    focusBarcodeInput();
+  });
 };
 
 const addScannedProductToCart = () => {
@@ -881,8 +1191,10 @@ const clearBill = () => {
   customerPhone.value = "";
   manualBarcode.value = "";
   searchResults.value = [];
+  gstEnabled.value = false; // Reset GST toggle
   showSuccess("Cleared current bill");
 };
+
 const saveDraft = async () => {
   if (billItems.value.length === 0) {
     showError("Cannot save empty bill");
@@ -899,7 +1211,10 @@ const saveDraft = async () => {
       price: item.price,
       quantity: item.quantity,
     })),
-    total: totalAmount.value,
+    subtotal: totalAmount.value,
+    gstEnabled: gstEnabled.value,
+    gstAmount: gstAmount.value,
+    total: grandTotal.value,
     date: new Date().toISOString(),
   };
 
@@ -911,6 +1226,7 @@ const saveDraft = async () => {
     showError(`Failed to save draft: ${err.message}`);
   }
 };
+
 const generateBill = async () => {
   if (billItems.value.length === 0) {
     showError("Cannot generate empty bill");
@@ -928,7 +1244,10 @@ const generateBill = async () => {
       price: item.price,
       quantity: item.quantity,
     })),
-    total: totalAmount.value,
+    subtotal: totalAmount.value,
+    gstEnabled: gstEnabled.value,
+    gstAmount: gstAmount.value,
+    total: grandTotal.value, // Use grandTotal instead of totalAmount
     date: new Date().toISOString(),
   };
 
@@ -936,20 +1255,21 @@ const generateBill = async () => {
     const bill = await apiService.createBill(billData);
     showSuccess(`Bill #${bill.id} generated successfully`);
 
+    // Generate and download invoice automatically
+    await downloadInvoice(bill);
+
     // Reset current bill
     clearBill();
 
     // Fetch recent bills to update list
     await fetchRecentBills();
-
-    // Generate PDF (optional)
-    // await generatePdf(bill)
   } catch (err) {
     showError(`Failed to generate bill: ${err.message}`);
   } finally {
     saving.value = false;
   }
 };
+
 const fetchRecentBills = async () => {
   try {
     recentBills.value = await apiService.getRecentBills();
@@ -958,20 +1278,41 @@ const fetchRecentBills = async () => {
     showError("Unable to fetch recent bills. Please try again later.");
   }
 };
-// View bill details
+
 const viewBillDetails = (bill) => {
-  // For now, just log the bill details
   console.log("Viewing bill details:", bill);
-  // You can implement a modal or new page to show detailed bill info
 };
+
+// Global keyboard event listener for barcode scanner
+const handleGlobalKeydown = (event) => {
+  // Focus the hidden input when scanner starts typing
+  if (
+    barcodeInput.value &&
+    !barcodeInput.value.contains(document.activeElement)
+  ) {
+    const currentTime = Date.now();
+    if (currentTime - lastInputTime.value < 100) {
+      focusBarcodeInput();
+    }
+  }
+};
+
 // Lifecycle hooks
 onMounted(() => {
   fetchProducts();
   fetchRecentBills();
+
+  // Auto-focus scanner input when page loads
+  focusBarcodeInput();
+
+  // Add global keyboard listener
+  document.addEventListener("keydown", handleGlobalKeydown);
+
+  // Keep scanner always focused and ready
+  // Check every 2 seconds instead of 5
 });
+
 onUnmounted(() => {
-  if (html5QrCode) {
-    stopScanner();
-  }
+  document.removeEventListener("keydown", handleGlobalKeydown);
 });
 </script>
