@@ -56,22 +56,31 @@
         <!-- Customer Search -->
         <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
           <h3
-            class="text-lg font-semibold text-gray-800 mb-4 flex items-center"
+            class="text-lg font-semibold text-gray-800 mb-4 flex items-center justify-between"
           >
-            <svg
-              class="w-5 h-5 mr-2 text-indigo-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+            <div class="flex items-center">
+              <svg
+                class="w-5 h-5 mr-2 text-indigo-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              Search Customers
+            </div>
+            <!-- Active Filters Indicator -->
+            <span
+              v-if="searchQuery || nameFilter || selectedPeriod !== 'all'"
+              class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-            Search Customers
+              Filters Active
+            </span>
           </h3>
 
           <div class="space-y-4">
@@ -95,6 +104,30 @@
                   stroke-linejoin="round"
                   stroke-width="2"
                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+
+            <!-- Customer Name Filter -->
+            <div class="relative">
+              <input
+                v-model="nameFilter"
+                @input="searchCustomers"
+                type="text"
+                placeholder="Filter by customer name only..."
+                class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+              <svg
+                class="w-4 h-4 text-gray-400 absolute left-3 top-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                 />
               </svg>
             </div>
@@ -155,6 +188,27 @@
               </svg>
               <span>{{ loading ? "Loading..." : "Refresh" }}</span>
             </button>
+
+            <!-- Clear Filters Button -->
+            <button
+              @click="clearFilters"
+              class="w-full bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors duration-200 flex items-center justify-center space-x-2"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+              <span>Clear Filters</span>
+            </button>
           </div>
         </div>
 
@@ -195,6 +249,70 @@
               </span>
             </h3>
             <div class="flex items-center space-x-2">
+              <!-- View Toggle -->
+              <div class="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  @click="viewMode = 'card'"
+                  :class="[
+                    'px-3 py-1 rounded text-sm transition-colors duration-200',
+                    viewMode === 'card'
+                      ? 'bg-white text-indigo-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-800',
+                  ]"
+                >
+                  <svg
+                    class="w-4 h-4 inline mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                    />
+                  </svg>
+                  Cards
+                </button>
+                <button
+                  @click="viewMode = 'table'"
+                  :class="[
+                    'px-3 py-1 rounded text-sm transition-colors duration-200',
+                    viewMode === 'table'
+                      ? 'bg-white text-indigo-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-800',
+                  ]"
+                >
+                  <svg
+                    class="w-4 h-4 inline mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M3 10h18M3 14h18M3 18h18M3 6h18"
+                    />
+                  </svg>
+                  Table
+                </button>
+              </div>
+
+              <!-- Show All Toggle for Table View -->
+              <div v-if="viewMode === 'table'" class="flex items-center">
+                <label class="flex items-center text-sm text-gray-600">
+                  <input
+                    v-model="showAllInTable"
+                    type="checkbox"
+                    class="mr-2 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  Show All
+                </label>
+              </div>
+
               <button
                 @click="exportCustomers"
                 class="text-indigo-600 hover:text-indigo-800 text-sm flex items-center space-x-1"
@@ -264,7 +382,177 @@
             </p>
           </div>
 
-          <!-- Customer List -->
+          <!-- Table View -->
+          <div v-else-if="viewMode === 'table'" class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Customer
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Contact
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Total Spent
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Bills
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Avg. Bill
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Last Visit
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Type
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr
+                  v-for="customer in displayedCustomers"
+                  :key="customer.id"
+                  class="hover:bg-gray-50 transition-colors duration-150"
+                >
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div
+                        class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mr-3"
+                      >
+                        <span class="text-white font-bold text-sm">
+                          {{ getInitials(customer.name) }}
+                        </span>
+                      </div>
+                      <div>
+                        <div class="text-sm font-medium text-gray-900">
+                          {{ customer.name }}
+                        </div>
+                        <div class="text-sm text-gray-500">
+                          ID: {{ customer.id }}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <div>
+                      <div class="font-medium">
+                        {{ customer.phone || "No phone" }}
+                      </div>
+                      <div class="text-gray-500">
+                        {{ customer.email || "No email" }}
+                      </div>
+                    </div>
+                  </td>
+                  <td
+                    class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600"
+                  >
+                    ₹{{ customer.totalSpent.toLocaleString() }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {{ customer.billCount }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    ₹{{
+                      (
+                        customer.totalSpent / customer.billCount
+                      ).toLocaleString()
+                    }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {{ formatDateTime(customer.lastVisit) }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span
+                      :class="[
+                        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+                        customer.isFrequent
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-gray-100 text-gray-800',
+                      ]"
+                    >
+                      <span
+                        :class="[
+                          'w-1.5 h-1.5 rounded-full mr-1.5',
+                          customer.isFrequent ? 'bg-green-500' : 'bg-gray-400',
+                        ]"
+                      ></span>
+                      {{ customer.isFrequent ? "Frequent" : "Regular" }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button
+                      @click="selectCustomer(customer)"
+                      class="text-indigo-600 hover:text-indigo-900 transition-colors duration-150"
+                    >
+                      View Details
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Table Pagination -->
+            <div
+              v-if="viewMode === 'table' && !showAllInTable && totalPages > 1"
+              class="flex items-center justify-between mt-6 pt-4 border-t border-gray-200"
+            >
+              <div class="text-sm text-gray-500">
+                Showing {{ (currentPage - 1) * 100 + 1 }} to
+                {{ Math.min(currentPage * 100, filteredCustomers.length) }}
+                of {{ filteredCustomers.length }} customers
+              </div>
+              <div class="flex items-center space-x-2">
+                <button
+                  @click="currentPage--"
+                  :disabled="currentPage === 1"
+                  class="px-3 py-1 border border-gray-300 rounded text-sm disabled:bg-gray-100 disabled:text-gray-400 hover:bg-gray-50 transition-colors duration-150"
+                >
+                  Previous
+                </button>
+                <span class="px-3 py-1 text-sm">
+                  Page {{ currentPage }} of {{ totalPages }}
+                </span>
+                <button
+                  @click="currentPage++"
+                  :disabled="currentPage === totalPages"
+                  class="px-3 py-1 border border-gray-300 rounded text-sm disabled:bg-gray-100 disabled:text-gray-400 hover:bg-gray-50 transition-colors duration-150"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+
+            <!-- Show All Info -->
+            <div
+              v-if="viewMode === 'table' && showAllInTable"
+              class="mt-6 pt-4 border-t border-gray-200 text-sm text-gray-500 text-center"
+            >
+              Showing all {{ filteredCustomers.length }} customers
+            </div>
+          </div>
+
+          <!-- Card View (Original) -->
           <div v-else class="space-y-3 max-h-96 overflow-y-auto">
             <div
               v-for="customer in paginatedCustomers"
@@ -326,9 +614,9 @@
             </div>
           </div>
 
-          <!-- Pagination -->
+          <!-- Card View Pagination -->
           <div
-            v-if="totalPages > 1"
+            v-if="viewMode === 'card' && totalPages > 1"
             class="flex items-center justify-between mt-6 pt-4 border-t border-gray-200"
           >
             <div class="text-sm text-gray-500">
@@ -411,12 +699,6 @@
                   selectedCustomer.phone || "Not provided"
                 }}</span>
               </div>
-              <!-- <div class="flex justify-between">
-                <span class="text-gray-600">Email:</span>
-                <span class="font-medium">{{
-                  selectedCustomer.email || "Not provided"
-                }}</span>
-              </div> -->
               <div class="flex justify-between">
                 <span class="text-gray-600">First Visit:</span>
                 <span class="font-medium">{{
@@ -514,12 +796,15 @@ import { ref, computed, onMounted } from "vue";
 const customers = ref([]);
 const selectedCustomer = ref(null);
 const searchQuery = ref("");
+const nameFilter = ref(""); // New dedicated name filter
 const selectedPeriod = ref("all");
 const sortBy = ref("recent");
 const loading = ref(false);
 const error = ref("");
 const currentPage = ref(1);
 const itemsPerPage = ref(10);
+const viewMode = ref("card"); // 'card' or 'table'
+const showAllInTable = ref(false); // New toggle for showing all customers in table
 
 // API Configuration
 const API_BASE = "https://billing-software-ten.vercel.app/api";
@@ -555,7 +840,13 @@ const apiService = {
   },
 
   async getCustomers() {
-    return this.makeRequest("/bills/recent/list");
+    // Try to get all bills first, fallback to recent if not available
+    try {
+      return this.makeRequest("/bills");
+    } catch (error) {
+      console.log("Falling back to recent bills:", error.message);
+      return this.makeRequest("/bills/recent/list");
+    }
   },
 };
 
@@ -563,7 +854,7 @@ const apiService = {
 const filteredCustomers = computed(() => {
   let filtered = [...customers.value];
 
-  // Apply search filter
+  // Apply general search filter
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     filtered = filtered.filter(
@@ -571,6 +862,14 @@ const filteredCustomers = computed(() => {
         customer.name.toLowerCase().includes(query) ||
         (customer.phone && customer.phone.includes(query)) ||
         (customer.email && customer.email.toLowerCase().includes(query))
+    );
+  }
+
+  // Apply name-specific filter
+  if (nameFilter.value) {
+    const nameQuery = nameFilter.value.toLowerCase();
+    filtered = filtered.filter((customer) =>
+      customer.name.toLowerCase().includes(nameQuery)
     );
   }
 
@@ -622,8 +921,28 @@ const paginatedCustomers = computed(() => {
   return filteredCustomers.value.slice(start, end);
 });
 
+// For table view - show more items per page or all
+const displayedCustomers = computed(() => {
+  if (viewMode.value === "table") {
+    // If "Show All" is checked, return all filtered customers
+    if (showAllInTable.value) {
+      return filteredCustomers.value;
+    }
+    // Otherwise use pagination with larger page size for table
+    const tableItemsPerPage = 100;
+    const start = (currentPage.value - 1) * tableItemsPerPage;
+    const end = start + tableItemsPerPage;
+    return filteredCustomers.value.slice(start, end);
+  }
+  return paginatedCustomers.value;
+});
+
 const totalPages = computed(() => {
-  return Math.ceil(filteredCustomers.value.length / itemsPerPage.value);
+  if (viewMode.value === "table" && showAllInTable.value) {
+    return 1; // Only one page when showing all
+  }
+  const itemsToShow = viewMode.value === "table" ? 100 : itemsPerPage.value;
+  return Math.ceil(filteredCustomers.value.length / itemsToShow);
 });
 
 const totalCustomers = computed(() => customers.value.length);
@@ -695,12 +1014,19 @@ const fetchCustomers = async () => {
   loading.value = true;
   try {
     const data = await apiService.getCustomers();
+    // Check if data is an array or has a property containing the array
+    let bills = Array.isArray(data)
+      ? data
+      : Array.isArray(data.bills)
+      ? data.bills
+      : [];
+    console.log("Fetched bills data:", bills.length, "bills");
 
     // Transform the data to match our customer structure
     // Assuming the API returns bill data, we need to group by customer
     const customerMap = new Map();
 
-    data.forEach((bill) => {
+    bills.forEach((bill) => {
       const customerKey = bill.customerName || "Walk-in Customer";
       const customerPhone = bill.customerPhone || null;
 
@@ -735,6 +1061,14 @@ const fetchCustomers = async () => {
     });
 
     customers.value = Array.from(customerMap.values());
+    console.log(
+      "Processed customers:",
+      customers.value.length,
+      "unique customers"
+    );
+
+    // Reset pagination to show all data
+    currentPage.value = 1;
   } catch (err) {
     showError(err.message);
     console.error("Failed to fetch customers:", err);
@@ -745,6 +1079,14 @@ const fetchCustomers = async () => {
 
 const searchCustomers = () => {
   currentPage.value = 1; // Reset to first page when searching
+};
+
+const clearFilters = () => {
+  searchQuery.value = "";
+  nameFilter.value = "";
+  selectedPeriod.value = "all";
+  sortBy.value = "recent";
+  currentPage.value = 1;
 };
 
 const applyFilters = () => {
@@ -767,8 +1109,10 @@ const exportCustomers = () => {
       "Email",
       "Total Spent",
       "Bill Count",
+      "Average Bill",
       "First Visit",
       "Last Visit",
+      "Customer Type",
     ].join(","),
     ...filteredCustomers.value.map((customer) =>
       [
@@ -777,8 +1121,10 @@ const exportCustomers = () => {
         customer.email || "",
         customer.totalSpent,
         customer.billCount,
+        (customer.totalSpent / customer.billCount).toFixed(2),
         customer.firstVisit,
         customer.lastVisit,
+        customer.isFrequent ? "Frequent" : "Regular",
       ].join(",")
     ),
   ].join("\n");
