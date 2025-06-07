@@ -1,4 +1,4 @@
-<!-- Complete pages/index.vue with T-6900 scanner support and auto invoice download -->
+<!-- Complete pages/index.vue with T-6900 scanner support, auto invoice download, WhatsApp sharing, and Manual GST -->
 <template>
   <div class="p-8 max-w-7xl mx-auto">
     <!-- Hidden input for physical barcode scanner -->
@@ -55,6 +55,84 @@
       <div class="flex">
         <span>{{ successMessage }}</span>
         <button @click="successMessage = ''" class="ml-auto">×</button>
+      </div>
+    </div>
+
+    <!-- WhatsApp Share Section -->
+    <div
+      v-if="lastGeneratedBill"
+      class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6"
+    >
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-semibold text-green-800 mb-2">
+            🎉 Bill Generated Successfully!
+          </h3>
+          <p class="text-green-700 text-sm">
+            Bill #{{ lastGeneratedBill.id }} for
+            {{ lastGeneratedBill.customerName || "Walk-in Customer" }} • Total:
+            ₹{{ lastGeneratedBill.total.toLocaleString() }}
+          </p>
+        </div>
+        <button
+          @click="lastGeneratedBill = null"
+          class="text-green-600 hover:text-green-800"
+        >
+          ×
+        </button>
+      </div>
+
+      <div class="mt-4 flex flex-col sm:flex-row gap-3">
+        <button
+          v-if="lastGeneratedBill.customerPhone"
+          @click="shareOnWhatsApp"
+          class="flex items-center justify-center bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+        >
+          <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.588"
+            />
+          </svg>
+          📎 Send PDF on WhatsApp
+        </button>
+
+        <button
+          v-else
+          @click="shareOnWhatsAppGeneral"
+          class="flex items-center justify-center bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+        >
+          <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.588"
+            />
+          </svg>
+          📎 Send PDF on WhatsApp
+        </button>
+
+        <button
+          @click="downloadInvoice(lastGeneratedBill)"
+          class="flex items-center justify-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <svg
+            class="w-5 h-5 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          Download PDF Again
+        </button>
+      </div>
+
+      <div class="mt-3 text-xs text-green-600">
+        💡 How it works: PDF will download automatically, then WhatsApp opens.
+        Attach the downloaded PDF to your message.
       </div>
     </div>
 
@@ -312,9 +390,23 @@
                 >₹{{ totalAmount.toLocaleString() }}</span
               >
             </div>
+            <div v-if="discountAmount > 0" class="border-t pt-2">
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Discount:</span>
+                <span class="font-medium text-red-600"
+                  >- ₹{{ discountAmount.toLocaleString() }}</span
+                >
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">After Discount:</span>
+                <span class="font-medium"
+                  >₹{{ discountedAmount.toLocaleString() }}</span
+                >
+              </div>
+            </div>
             <div v-if="gstEnabled" class="border-t pt-2">
               <div class="flex justify-between text-sm">
-                <span class="text-gray-600">GST (18%):</span>
+                <span class="text-gray-600">GST ({{ gstPercentage }}%):</span>
                 <span class="font-medium"
                   >₹{{ gstAmount.toLocaleString() }}</span
                 >
@@ -357,15 +449,35 @@
                 class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
 
+              <!-- Discount Field -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Discount Amount (₹)
+                </label>
+                <input
+                  v-model.number="discountAmount"
+                  type="number"
+                  min="0"
+                  :max="totalAmount"
+                  step="0.01"
+                  placeholder="Enter discount amount (e.g., 20)"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <p v-if="discountAmount > 0" class="text-xs text-gray-500 mt-1">
+                  Discount: ₹{{ discountAmount.toLocaleString() }} | After
+                  Discount: ₹{{ discountedAmount.toLocaleString() }}
+                </p>
+              </div>
+
               <!-- GST Toggle -->
               <div
                 class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
               >
                 <div>
                   <label class="text-sm font-medium text-gray-700"
-                    >GST Invoice</label
+                    >GST Invoice {{ gstEnabled }}</label
                   >
-                  <p class="text-xs text-gray-500">Enable to add 18% GST</p>
+                  <p class="text-xs text-gray-500">Enable to add custom GST</p>
                 </div>
                 <button
                   @click="gstEnabled = !gstEnabled"
@@ -382,6 +494,39 @@
                     ]"
                   />
                 </button>
+              </div>
+
+              <!-- GST Percentage Input (shown when GST is enabled) -->
+              <div v-if="gstEnabled" class="mt-3">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  GST Percentage (%)
+                </label>
+                <div class="flex space-x-2">
+                  <input
+                    v-model.number="gstPercentage"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    placeholder="Enter GST percentage (e.g., 18)"
+                    class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <button
+                    @click="gstPercentage = 18"
+                    class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300 text-sm"
+                  >
+                    18%
+                  </button>
+                  <button
+                    @click="gstPercentage = 12"
+                    class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300 text-sm"
+                  >
+                    12%
+                  </button>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">
+                  GST Amount: ₹{{ gstAmount.toLocaleString() }}
+                </p>
               </div>
             </div>
           </div>
@@ -524,9 +669,15 @@
                   </p>
                   <span
                     v-if="bill.gstEnabled"
-                    class="inline-block mt-1 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded"
+                    class="inline-block mt-1 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded mr-1"
                   >
-                    GST Invoice
+                    GST {{ bill.gstPercentage || 0 }}%
+                  </span>
+                  <span
+                    v-if="bill.discountAmount > 0"
+                    class="inline-block mt-1 text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded"
+                  >
+                    Discount ₹{{ bill.discountAmount }}
                   </span>
                 </div>
                 <div class="text-right">
@@ -536,12 +687,21 @@
                   <p class="text-xs text-gray-500">
                     {{ bill.items.length }} items
                   </p>
-                  <button
-                    @click="downloadInvoice(bill)"
-                    class="mt-2 text-xs text-blue-600 hover:text-blue-800"
-                  >
-                    📥 Download Invoice
-                  </button>
+                  <div class="mt-2 space-y-1">
+                    <button
+                      @click="downloadInvoice(bill)"
+                      class="block text-xs text-blue-600 hover:text-blue-800"
+                    >
+                      📥 Download PDF
+                    </button>
+                    <button
+                      v-if="bill.customerPhone"
+                      @click="shareExistingBillOnWhatsApp(bill)"
+                      class="block text-xs text-green-600 hover:text-green-800"
+                    >
+                      📱 Send on WhatsApp
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -600,6 +760,9 @@ const error = ref("");
 const successMessage = ref("");
 const scannedProduct = ref(null);
 const gstEnabled = ref(false); // GST toggle state
+const gstPercentage = ref(0); // Manual GST percentage input
+const discountAmount = ref(0); // Discount amount input
+const lastGeneratedBill = ref(null); // Track last generated bill for WhatsApp sharing
 
 // API Configuration
 const API_BASE = "https://billing-software-ten.vercel.app/api";
@@ -609,10 +772,14 @@ const currentBillId = computed(() => Date.now().toString().slice(-6));
 const totalAmount = computed(() =>
   billItems.value.reduce((sum, item) => sum + item.price * item.quantity, 0)
 );
+const discountedAmount = computed(() => {
+  const afterDiscount = totalAmount.value - discountAmount.value;
+  return afterDiscount > 0 ? afterDiscount : 0;
+});
 const gstAmount = computed(() =>
-  gstEnabled.value ? totalAmount.value * 0.18 : 0
+  gstEnabled.value ? (discountedAmount.value * gstPercentage.value) / 100 : 0
 );
-const grandTotal = computed(() => totalAmount.value + gstAmount.value);
+const grandTotal = computed(() => discountedAmount.value + gstAmount.value);
 const totalQuantity = computed(() =>
   billItems.value.reduce((sum, item) => sum + item.quantity, 0)
 );
@@ -647,8 +814,6 @@ const loadJsPDF = () => {
     document.head.appendChild(script);
   });
 };
-
-// Generate invoice PDF
 const generateInvoicePDF = async (billData) => {
   try {
     const { jsPDF } = await loadJsPDF();
@@ -770,17 +935,52 @@ const generateInvoicePDF = async (billData) => {
     y += 10;
     doc.setDrawColor(...lightGray);
     doc.line(20, y, 190, y);
-
     // Totals
     y += 8;
     doc.setFont(undefined, "bold");
     doc.text("Subtotal:", 140, y);
     doc.text(`₹${subtotal.toLocaleString()}`, 185, y, { align: "right" });
 
-    if (gstEnabled.value) {
+    // Show discount if applied
+    if (
+      typeof billData.discountAmount !== "undefined" &&
+      Number(billData.discountAmount) > 0
+    ) {
       y += 5;
-      doc.text("GST (18%):", 140, y);
-      doc.text(`₹${gstAmount.value.toLocaleString()}`, 185, y, {
+      doc.setTextColor(220, 38, 38); // Red color for discount
+      doc.text("Discount:", 140, y);
+      doc.text(
+        `- ₹${Number(billData.discountAmount).toLocaleString()}`,
+        185,
+        y,
+        {
+          align: "right",
+        }
+      );
+
+      y += 5;
+      doc.setTextColor(...textColor);
+      doc.text("After Discount:", 140, y);
+      const afterDiscount = subtotal - Number(billData.discountAmount);
+      doc.text(`₹${afterDiscount.toLocaleString()}`, 185, y, {
+        align: "right",
+      });
+    }
+
+    // Show GST if enabled
+    console.log("GST Enabled:", billData.gstEnabled);
+    console.log("GST Percentage:", billData.gstPercentage);
+    console.log("GST Amount:", billData.gstAmount);
+    console.log("GST Amount Type:", typeof billData.gstAmount);
+    if (
+      billData.gstEnabled &&
+      Number(billData.gstPercentage) > 0 &&
+      typeof billData.gstAmount !== "undefined"
+    ) {
+      y += 5;
+      doc.setTextColor(...textColor);
+      doc.text(`GST (${Number(billData.gstPercentage)}%):`, 140, y);
+      doc.text(`₹${Number(billData.gstAmount).toLocaleString()}`, 185, y, {
         align: "right",
       });
     }
@@ -797,7 +997,6 @@ const generateInvoicePDF = async (billData) => {
     doc.text(`₹${billData.total.toLocaleString()}`, 185, y + 2, {
       align: "right",
     });
-
     // Terms and conditions
     y += 20;
     doc.setTextColor(...textColor);
@@ -831,6 +1030,8 @@ const generateInvoicePDF = async (billData) => {
   }
 };
 
+// Generate invoice PDF
+
 // Download invoice for any bill
 const downloadInvoice = async (billData) => {
   try {
@@ -842,6 +1043,204 @@ const downloadInvoice = async (billData) => {
     showSuccess(`Invoice downloaded: ${fileName}`);
   } catch (err) {
     showError(`Failed to generate invoice: ${err.message}`);
+  }
+};
+// WhatsApp sharing functions
+const shareOnWhatsApp = async () => {
+  if (!lastGeneratedBill.value) return;
+
+  const bill = lastGeneratedBill.value;
+  const phoneNumber = bill.customerPhone;
+
+  // Clean phone number (remove spaces, dashes, and ensure it starts with country code)
+  let cleanPhone = phoneNumber.replace(/[\s\-\(\)]/g, "");
+
+  // Add +91 for Indian numbers if not present
+  if (!cleanPhone.startsWith("+")) {
+    if (cleanPhone.startsWith("91")) {
+      cleanPhone = "+" + cleanPhone;
+    } else if (cleanPhone.length === 10) {
+      cleanPhone = "+91" + cleanPhone;
+    }
+  }
+
+  // Generate and download PDF first
+  try {
+    // await downloadInvoice(bill);
+
+    // Build items list
+    const itemsList = bill.items
+      .map(
+        (item, idx) =>
+          `${idx + 1}. ${item.name} - ${item.quantity} x ₹${item.price} = ₹${(
+            item.price * item.quantity
+          ).toLocaleString()}`
+      )
+      .join("\n");
+
+    const dateObj = new Date(bill.date);
+    const dateStr = dateObj.toLocaleDateString("en-IN");
+    const timeStr = dateObj.toLocaleTimeString("en-IN");
+
+    const message = `Invoice from ${companyConfig.name}
+
+Hello ${bill.customerName || "Customer"}!  
+
+Thank you for your purchase. Here are your bill details:
+
+  Bill ${bill.id}
+  Date: ${dateStr}
+  Time: ${timeStr}
+
+  Items Purchased:
+${itemsList}
+  Discount: ₹${bill.discountAmount || 0}
+  GST (${bill.gstPercentage || 0}%): ₹${bill.gstAmount || 0}
+  Total Amount: ₹${bill.total.toLocaleString()}
+
+  Invoice PDF is attached
+
+Thank you for choosing ${companyConfig.name}!  
+
+For any queries, feel free to contact us:
+  ${companyConfig.phone}
+  ${companyConfig.email}
+`;
+
+    const whatsappUrl = `https://wa.me/${cleanPhone.replace(
+      "+",
+      ""
+    )}?text=${encodeURIComponent(message)}`;
+
+    // Open WhatsApp
+    window.open(whatsappUrl, "_blank");
+
+    showSuccess(
+      "📱 PDF downloaded! WhatsApp opened - please attach the downloaded invoice."
+    );
+  } catch (err) {
+    showError("Failed to prepare invoice for WhatsApp sharing");
+  }
+};
+
+const shareOnWhatsAppGeneral = async () => {
+  if (!lastGeneratedBill.value) return;
+
+  const bill = lastGeneratedBill.value;
+
+  // Build items list
+  const itemsList = bill.items
+    .map(
+      (item, idx) =>
+        `${idx + 1}. ${item.name} - ${item.quantity} x ₹${item.price} = ₹${(
+          item.price * item.quantity
+        ).toLocaleString()}`
+    )
+    .join("\n");
+
+  const dateObj = new Date(bill.date);
+  const dateStr = dateObj.toLocaleDateString("en-IN");
+  const timeStr = dateObj.toLocaleTimeString("en-IN");
+
+  const message = `Invoice from ${companyConfig.name}
+
+Hello ${bill.customerName || "Customer"}!  
+
+Thank you for your purchase. Here are your bill details:
+
+  Bill #${bill.id}
+  Date: ${dateStr}
+  Time: ${timeStr}
+
+  Items Purchased:
+${itemsList}
+
+  Total Amount: ₹${bill.total.toLocaleString()}
+
+Thank you for choosing ${companyConfig.name}!  
+
+For any queries, feel free to contact us:
+  ${companyConfig.phone}
+  ${companyConfig.email}
+`;
+
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+
+  // Open WhatsApp
+  window.open(whatsappUrl, "_blank");
+
+  showSuccess("WhatsApp opened - select contact and send the bill details.");
+};
+
+const shareExistingBillOnWhatsApp = async (bill) => {
+  const phoneNumber = bill.customerPhone;
+
+  // Clean phone number
+  let cleanPhone = phoneNumber.replace(/[\s\-\(\)]/g, "");
+
+  if (!cleanPhone.startsWith("+")) {
+    if (cleanPhone.startsWith("91")) {
+      cleanPhone = "+" + cleanPhone;
+    } else if (cleanPhone.length === 10) {
+      cleanPhone = "+91" + cleanPhone;
+    }
+  }
+
+  // Generate and download PDF first
+  try {
+    await downloadInvoice(bill);
+
+    // Build items list
+    const itemsList = bill.items
+      .map(
+        (item, idx) =>
+          `${idx + 1}. ${item.name} - ${item.quantity} x ₹${item.price} = ₹${(
+            item.price * item.quantity
+          ).toLocaleString()}`
+      )
+      .join("\n");
+
+    const dateObj = new Date(bill.date);
+    const dateStr = dateObj.toLocaleDateString("en-IN");
+    const timeStr = dateObj.toLocaleTimeString("en-IN");
+
+    const message = `Invoice from ${companyConfig.name}
+
+Hello ${bill.customerName || "Customer"}!  
+
+Thank you for your purchase. Here are your bill details:
+
+  Bill #${bill.id}
+  Date: ${dateStr}
+  Time: ${timeStr}
+
+  Items Purchased:
+${itemsList}
+
+  Total Amount: ₹${bill.total.toLocaleString()}
+
+  Invoice PDF is attached
+
+Thank you for choosing ${companyConfig.name}!  
+
+For any queries, feel free to contact us:
+  ${companyConfig.phone}
+  ${companyConfig.email}
+`;
+
+    const whatsappUrl = `https://wa.me/${cleanPhone.replace(
+      "+",
+      ""
+    )}?text=${encodeURIComponent(message)}`;
+
+    // Open WhatsApp
+    window.open(whatsappUrl, "_blank");
+
+    showSuccess(
+      "📱 PDF downloaded! WhatsApp opened - please attach the invoice."
+    );
+  } catch (err) {
+    showError("Failed to prepare invoice for WhatsApp sharing");
   }
 };
 
@@ -1192,6 +1591,8 @@ const clearBill = () => {
   manualBarcode.value = "";
   searchResults.value = [];
   gstEnabled.value = false; // Reset GST toggle
+  gstPercentage.value = 0; // Reset GST percentage
+  discountAmount.value = 0; // Reset discount amount
   showSuccess("Cleared current bill");
 };
 
@@ -1212,7 +1613,9 @@ const saveDraft = async () => {
       quantity: item.quantity,
     })),
     subtotal: totalAmount.value,
+    discountAmount: discountAmount.value,
     gstEnabled: gstEnabled.value,
+    gstPercentage: gstPercentage.value,
     gstAmount: gstAmount.value,
     total: grandTotal.value,
     date: new Date().toISOString(),
@@ -1245,7 +1648,9 @@ const generateBill = async () => {
       quantity: item.quantity,
     })),
     subtotal: totalAmount.value,
+    discountAmount: discountAmount.value,
     gstEnabled: gstEnabled.value,
+    gstPercentage: gstPercentage.value,
     gstAmount: gstAmount.value,
     total: grandTotal.value, // Use grandTotal instead of totalAmount
     date: new Date().toISOString(),
@@ -1255,8 +1660,23 @@ const generateBill = async () => {
     const bill = await apiService.createBill(billData);
     showSuccess(`Bill #${bill.id} generated successfully`);
 
+    // Store the generated bill for WhatsApp sharing
+    lastGeneratedBill.value = {
+      ...bill,
+      gstAmount: billData.gstAmount,
+      gstPercentage: billData.gstPercentage,
+      discountAmount: billData.discountAmount,
+      gstEnabled: billData.gstEnabled,
+    };
+
     // Generate and download invoice automatically
-    await downloadInvoice(bill);
+    await downloadInvoice({
+      ...bill,
+      gstAmount: billData.gstAmount,
+      gstPercentage: billData.gstPercentage,
+      discountAmount: billData.discountAmount,
+      gstEnabled: billData.gstEnabled,
+    });
 
     // Reset current bill
     clearBill();
